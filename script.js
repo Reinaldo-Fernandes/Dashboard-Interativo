@@ -1,5 +1,10 @@
 const apiKey = '0ZGR38BJTLXE7527'; // Substitua pela sua chave da Alpha Vantage
-const symbol = 'IBM'; // Símbolo da empresa que você deseja acompanhar
+
+// Alternância de tema claro/escuro
+const chk = document.getElementById('chk');
+chk.addEventListener('change', () => {
+    document.body.classList.toggle('dark');
+});
 
 // Configuração inicial dos gráficos
 const ctxLine = document.getElementById('lineChart').getContext('2d');
@@ -35,18 +40,8 @@ let barChart = new Chart(ctxBar, {
         datasets: [{
             label: 'Volume de Negociações',
             data: [],
-            backgroundColor: [
-                'rgba(255, 99, 132, 0.2)',
-                'rgba(54, 162, 235, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
-                'rgba(75, 192, 192, 0.2)'
-            ],
-            borderColor: [
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(75, 192, 192, 1)'
-            ],
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
             borderWidth: 1
         }]
     },
@@ -61,19 +56,19 @@ let barChart = new Chart(ctxBar, {
 });
 
 // Função para buscar dados da API
-function fetchData(period) {
-    const url = `https://www.alphavantage.co/query?function=TIME_SERIES_${period.toUpperCase()}&symbol=${symbol}&apikey=${apiKey}`;
-
+function fetchDataApi(period, company, metric) {
+    const url = `https://www.alphavantage.co/query?function=TIME_SERIES_${period}&symbol=${company}&apikey=${apiKey}`;
     fetch(url)
         .then(response => response.json())
         .then(data => {
-            const timeSeries = data[`Time Series (${period.toUpperCase()})`];
+            const timeSeries = data[`Time Series (${period})`];
+            if (!timeSeries) {
+                console.error('Nenhum dado disponível');
+                return;
+            }
             const labels = Object.keys(timeSeries).reverse();
-            const prices = labels.map(label => parseFloat(timeSeries[label]['4. close']));
-            const volumes = labels.map(label => parseInt(timeSeries[label]['5. volume'], 10));
-
-            updateChart(lineChart, labels, prices);
-            updateChart(barChart, labels, volumes);
+            const dataPoints = labels.map(label => parseFloat(timeSeries[label][metric === 'price' ? '4. close' : '5. volume']));
+            updateChart(metric === 'price' ? lineChart : barChart, labels, dataPoints);
         })
         .catch(error => console.error('Erro ao buscar dados:', error));
 }
@@ -85,77 +80,41 @@ function updateChart(chart, labels, data) {
     chart.update();
 }
 
-// Atualizar gráficos ao clicar no botão "Buscar Dados"
-document.getElementById('fetchData').addEventListener('click', () => {
-    const period = document.getElementById('period').value;
-    let periodText = '';
-
-    switch (period) {
-        case '1m':
-            periodText = 'DAILY';
-            break;
-        case '3m':
-            periodText = 'DAILY';
-            break;
-        case '6m':
-            periodText = 'DAILY';
-            break;
-        case '1y':
-            periodText = 'WEEKLY';
-            break;
-    }
-
-    fetchData(periodText);
-});
-
-// Atualizar dados aleatórios ao clicar no botão "Atualizar Dados"
-document.getElementById('updateData').addEventListener('click', () => {
-    const randomData = Array.from({ length: 6 }, () => Math.floor(Math.random() * 100));
-    updateChartData(lineChart, randomData);
-    updateChartData(barChart, randomData);
-});
-
-// Função para atualizar os dados aleatórios
-function updateChartData(chart, data) {
-    chart.data.datasets[0].data = data;
-    chart.update();
+// Função para atualizar os dados com valores aleatórios
+function updateRandomData(chart) {
+    const randomData = Array.from({ length: chart.data.labels.length }, () => Math.floor(Math.random() * 100));
+    updateChart(chart, chart.data.labels, randomData);
 }
 
-document.getElementById('fetchData').addEventListener('click', () => {
-    const period = document.getElementById('period').value;
+// Função para carregar dados do arquivo JSON ou CSV
+function loadFileData(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const contents = e.target.result;
+        try {
+            const data = JSON.parse(contents);
+            const labels = Object.keys(data);
+            const values = Object.values(data);
+            updateChart(lineChart, labels, values);
+        } catch (err) {
+            console.error('Erro ao ler o arquivo:', err);
+        }
+    };
+    reader.readAsText(file);
+}
+
+// Event listeners
+document.getElementById('fetchDataBtn').addEventListener('click', () => {
+    const period = document.getElementById('periodSelect').value;
     const company = document.getElementById('company').value;
     const metric = document.getElementById('metric').value;
-
-    let periodText = '';
-    switch (period) {
-        case '1m':
-            periodText = 'DAILY';
-            break;
-        case '3m':
-            periodText = 'DAILY';
-            break;
-        case '6m':
-            periodText = 'DAILY';
-            break;
-        case '1y':
-            periodText = 'WEEKLY';
-            break;
-    }
-
-    fetchData(periodText, company, metric);
+    fetchDataApi(period, company, metric);
 });
 
-function fetchData(period, company, metric) {
-    const url = `https://www.alphavantage.co/query?function=TIME_SERIES_${period.toUpperCase()}&symbol=${company}&apikey=${apiKey}`;
+document.getElementById('updateRandomDataBtn').addEventListener('click', () => {
+    updateRandomData(lineChart);
+    updateRandomData(barChart);
+});
 
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            const timeSeries = data[`Time Series (${period.toUpperCase()})`];
-            const labels = Object.keys(timeSeries).reverse();
-            const dataPoints = labels.map(label => parseFloat(timeSeries[label][metric === 'price' ? '4. close' : '5. volume']));
-
-            updateChart(metric === 'price' ? lineChart : barChart, labels, dataPoints);
-        })
-        .catch(error => console.error('Erro ao buscar dados:', error));
-}
+document.getElementById('fileInput').addEventListener('change', loadFileData);
