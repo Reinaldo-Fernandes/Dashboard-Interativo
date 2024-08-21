@@ -4,51 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Interativo</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>Dashboard Interativo</h1>
+        <div>
+            <input type="checkbox" class="checkbox" id="chk" />
+            <label class="label" for="chk">
+                <i class="fas fa-moon"></i>
+                <i class="fas fa-sun"></i>
+                <div class="ball"></div>
+            </label>
+        </div>
         <div class="filters">
-            <label for="period">Selecione o Período:</label>
-            <select id="period">
+            <label for="periodSelect">Selecione o Período:</label>
+            <select id="periodSelect">
                 <option value="1m">Último Mês</option>
                 <option value="3m">Últimos 3 Meses</option>
                 <option value="6m">Últimos 6 Meses</option>
                 <option value="1y">Último Ano</option>
             </select>
-            <button id="fetchData">Buscar Dados</button>
+            <input type="file" id="fileInput" accept=".json,.csv">
+            <button id="fetchDataBtn">Buscar Dados</button>
         </div>
         <div class="charts">
             <canvas id="lineChart"></canvas>
             <canvas id="barChart"></canvas>
         </div>
-        <button id="updateData">Atualizar Dados</button>
+        <button id="updateRandomDataBtn">Atualizar Dados Aleatórios</button>
+
+        <div class="data-input">
+            <label for="period">Período:</label>
+            <select id="period">
+                <option value="DAILY">Diário</option>
+                <option value="WEEKLY">Semanal</option>
+                <option value="MONTHLY">Mensal</option>
+            </select>
+            <input type="text" id="company" placeholder="Código da empresa (ex: AAPL)">
+            <label for="metric">Métrica:</label>
+            <select id="metric">
+                <option value="price">Preço</option>
+                <option value="volume">Volume</option>
+            </select>
+            <button id="fetchDataApiBtn">Carregar Dados da API</button>
+        </div>
     </div>
-    <div class="filters">
-        <label for="period">Selecione o Período:</label>
-        <select id="period">
-            <option value="1m">Último Mês</option>
-            <option value="3m">Últimos 3 Meses</option>
-            <option value="6m">Últimos 6 Meses</option>
-            <option value="1y">Último Ano</option>
-        </select>
-        <label for="company">Selecione a Empresa:</label>
-        <select id="company">
-            <option value="IBM">IBM</option>
-            <option value="AAPL">Apple</option>
-            <option value="GOOGL">Google</option>
-            <option value="MSFT">Microsoft</option>
-        </select>
-        <label for="metric">Selecione a Métrica:</label>
-        <select id="metric">
-            <option value="price">Preço de Fechamento</option>
-            <option value="volume">Volume de Negociações</option>
-        </select>
-        <button id="fetchData">Buscar Dados</button>
-    </div>
-    
     <script src="script.js"></script>
+    <script src="https://kit.fontawesome.com/998c60ef77.js" crossorigin="anonymous"></script>
 </body>
 </html>
